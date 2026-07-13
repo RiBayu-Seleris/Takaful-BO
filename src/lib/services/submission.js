@@ -97,6 +97,16 @@ export async function getSubmissionRequiredDocuments(id) {
   return data?.data || []
 }
 
+export async function getSubmissionTruthStatements(id) {
+  const { data } = await api.get('submission/its/' + id)
+  return data?.data || []
+}
+
+export async function getSubmissionAccumulated(idCardNumber) {
+  const { data } = await api.get('submission/accumulated-submission/' + idCardNumber)
+  return data || { data: [], total_sum_insured: 0 }
+}
+
 export async function getSubmissionPartners() {
   const { data } = await api.get('submission/all-partner')
   return data?.data || []
@@ -256,6 +266,72 @@ export function submissionIdCardHistoryFetcher(idCardNumber) {
 
 export function sendSubmissionMedicalNotification(id) {
   return api.get('notification/document/medis/' + id)
+}
+
+export function updateSubmissionAcceptanceStatus(id, payload) {
+  return api.put('submission/acceptance-status/' + id, payload)
+}
+
+export function updateSubmissionAcceptanceStatusUat(id, payload) {
+  return api.put('submission/acceptance-status/uat/' + id, payload)
+}
+
+export function updateSubmissionPaymentStatus(id, payload) {
+  return api.put('submission/payment-status/' + id, payload)
+}
+
+export function updateSubmissionCertificateDate(id, payload) {
+  return api.put('submission/document/certificate/date/' + id, payload)
+}
+
+export async function getSubmissionCoverNoteFile(id) {
+  const { data } = await api.get('cover-note/sertificate/' + id)
+  return data?.file || {}
+}
+
+export async function markSubmissionCoverNoteDownloaded(id) {
+  const { data } = await api.get('submission/cover-note/download/' + id)
+  return data
+}
+
+export async function getSubmissionDecisionFile(id) {
+  const { data } = await api.get('submission/document/decision/' + id)
+  return data?.file || {}
+}
+
+export async function getSubmissionRejectedFile(id) {
+  const { data } = await api.get('submission/document/rejected/' + id)
+  return data?.file || {}
+}
+
+export async function getSubmissionRiplayGeneralFile(id) {
+  const { data } = await api.get('submission/riplay/general/' + id)
+  return data?.file || {}
+}
+
+export async function getSubmissionRiplayPersonalFile(id) {
+  const { data } = await api.get('submission/riplay/personal/' + id)
+  return data?.file || {}
+}
+
+export async function getSubmissionNewSpajkFile(id) {
+  const { data } = await api.get('document/new-spajk/' + id)
+  return data?.file || {}
+}
+
+export async function getSubmissionSpkFile(id) {
+  const { data } = await api.get('submission/health-cover-letter/' + id)
+  return data?.file || {}
+}
+
+export async function getSubmissionMembershipCertificateFile(id) {
+  const { data } = await api.get('membership/sertificate/' + id)
+  return data?.file || {}
+}
+
+export async function getSubmissionMedicalDetectionFile(insuredProfileId) {
+  const { data } = await api.get('document/medical/' + insuredProfileId)
+  return data?.file || {}
 }
 
 export async function getSubmissionRevisionField(id, fieldName) {

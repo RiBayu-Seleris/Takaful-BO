@@ -295,6 +295,7 @@ const penutupanRoutes = [
   { path: '/detail/riwayat-pengajuan/:id', name: 'detail-riwayat-pengajuan', component: () => import('@/views/penutupan/detail/RiwayatPengajuan.vue') },
   { path: '/detail/riwayat/:id', name: 'detail-riwayat', component: () => import('@/views/penutupan/detail/Riwayat.vue') },
   { path: '/detail/revisi-data/:id', name: 'detail-revisi-data', component: () => import('@/views/penutupan/detail/RevisiData.vue') },
+  { path: '/perubahan-data-pic/:id', name: 'perubahan-data-pic', component: Placeholder },
 ]
 
 // ---- Route publik (tanpa login) ----
