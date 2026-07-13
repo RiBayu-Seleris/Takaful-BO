@@ -17,7 +17,7 @@ docs
 .idea
 .DS_Store
 *.sw?
-.env
+# .env
 
 # Env (keep .env.example)
 .env.local
