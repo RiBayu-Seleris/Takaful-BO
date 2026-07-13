@@ -6,7 +6,7 @@ import { defineStore } from 'pinia'
  */
 export const useUiStore = defineStore('ui', {
   state: () => ({
-    isShowSidebar: true,
+    isShowSidebar: typeof window === 'undefined' ? true : window.innerWidth > 768,
     isCollapsed: false,
     isShowRightPanel: false,
     darkMode: localStorage.getItem('dark_mode') || 'light', // light | dark | system

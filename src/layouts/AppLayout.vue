@@ -6,7 +6,7 @@
  * Saat dimuat, kita ambil flag hak akses menu (loadMenuFlags) supaya sidebar
  * menampilkan menu sesuai role user.
  */
-import { onMounted } from 'vue'
+import { onBeforeUnmount, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useUiStore } from '@/stores/ui'
 import { useAuthStore } from '@/stores/auth'
@@ -19,8 +19,18 @@ const ui = useUiStore()
 const auth = useAuthStore()
 const { isCollapsed, isShowSidebar } = storeToRefs(ui)
 
+function closeSidebarOnSmallScreen() {
+  if (window.innerWidth <= 768) ui.toggleSidebar(false)
+}
+
 onMounted(() => {
   auth.loadMenuFlags()
+  closeSidebarOnSmallScreen()
+  window.addEventListener('resize', closeSidebarOnSmallScreen)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', closeSidebarOnSmallScreen)
 })
 </script>
 

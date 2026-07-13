@@ -159,14 +159,33 @@ const tabContext = computed(() => ({
 const sumInsuredAdvice = computed(() => withSuffix(data.value.sum_insured_advice, ' x Pendapatan Nasabah Per Bulan'))
 const insurancePeriodAdvice = computed(() => withSuffix(data.value.insurance_period_advice, ' Bulan'))
 const extraPremiumRate = computed(() => withSuffix(data.value.extra_premium_rate, ' %'))
+const latitude = computed(() => toCoordinate(data.value.latitude))
+const longitude = computed(() => toCoordinate(data.value.longitude))
+const hasGeolocation = computed(() => Number.isFinite(latitude.value) && Number.isFinite(longitude.value))
 const googleMapUrl = computed(() => {
-  if (!data.value.latitude || !data.value.longitude) return ''
-  return `https://www.google.com/maps?q=${data.value.latitude},${data.value.longitude}`
+  if (!hasGeolocation.value) return ''
+  return `https://www.google.com/maps?q=${latitude.value},${longitude.value}`
+})
+const openStreetMapEmbedUrl = computed(() => {
+  if (!hasGeolocation.value) return ''
+  const offset = 0.01
+  const bbox = [
+    longitude.value - offset,
+    latitude.value - offset,
+    longitude.value + offset,
+    latitude.value + offset,
+  ].join(',')
+  return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${latitude.value},${longitude.value}`
 })
 
 function withSuffix(value, suffix) {
   if (value === null || value === undefined || value === '') return ''
   return `${value}${suffix}`
+}
+
+function toCoordinate(value) {
+  if (value === null || value === undefined || value === '') return Number.NaN
+  return Number.parseFloat(String(value).replace(',', '.'))
 }
 
 function field(value) {
@@ -520,36 +539,54 @@ onMounted(loadData)
         </Card>
 
         <Card title="Foto, Video, dan Geolokasi">
-          <div class="grid grid-cols-1 gap-5 lg:grid-cols-3">
-            <div>
-              <div class="mb-2 flex items-center justify-between gap-2">
-                <h4 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Foto</h4>
-                <BaseButton v-if="data.id_card_url" size="sm" variant="secondary" @click="openFile(null, data.id_card_url)">Bandingkan</BaseButton>
+          <div class="space-y-6">
+            <div class="grid grid-cols-1 gap-5 lg:grid-cols-12">
+              <div class="lg:col-span-4 xl:col-span-3">
+                <div class="mb-2 flex items-center justify-between gap-2">
+                  <h4 class="text-sm font-semibold text-slate-700 dark:text-slate-200">Foto KTP</h4>
+                  <BaseButton v-if="data.id_card_url" size="sm" variant="secondary" @click="openFile(null, data.id_card_url)">Bandingkan</BaseButton>
+                </div>
+                <img
+                  :src="data.id_card_url || '/assets/images/avatar.png'"
+                  alt="Foto identitas debitur"
+                  class="h-[300px] w-full rounded-lg border border-slate-200 object-cover p-1 dark:border-slate-800"
+                />
               </div>
-              <img
-                :src="data.id_card_url || '/assets/images/avatar.png'"
-                alt="Foto identitas debitur"
-                class="aspect-[4/3] w-full rounded-lg border border-slate-200 object-cover dark:border-slate-800"
-              />
-            </div>
-            <div>
-              <h4 class="mb-2 text-sm font-semibold text-slate-700 dark:text-slate-200">Video</h4>
-              <div class="space-y-3">
-                <video v-if="data.vital_video_url" :src="data.vital_video_url" class="w-full rounded-lg border border-slate-200 dark:border-slate-800" controls />
-                <video v-if="!appChubb && data.front_appearance_video_url" :src="data.front_appearance_video_url" class="w-full rounded-lg border border-slate-200 dark:border-slate-800" controls />
-                <video v-if="!appChubb && data.side_appearance_video_url" :src="data.side_appearance_video_url" class="w-full rounded-lg border border-slate-200 dark:border-slate-800" controls />
-                <p v-if="!data.vital_video_url && !data.front_appearance_video_url && !data.side_appearance_video_url" class="text-sm text-slate-500">Video tidak tersedia.</p>
-              </div>
-            </div>
-            <div>
-              <h4 class="mb-2 text-sm font-semibold text-slate-700 dark:text-slate-200">Geolokasi</h4>
-              <div class="rounded-lg border border-slate-200 p-4 dark:border-slate-800">
-                <InfoField label="Latitude" :value="data.latitude" />
-                <div class="mt-4">
+
+              <div class="lg:col-span-8 xl:col-span-9">
+                <h4 class="mb-2 text-sm font-semibold text-slate-700 dark:text-slate-200">Geolokasi</h4>
+                <div class="rounded-lg border border-slate-200 p-1 dark:border-slate-800">
+                  <iframe
+                    v-if="hasGeolocation"
+                    :src="openStreetMapEmbedUrl"
+                    title="Peta geolokasi debitur"
+                    class="h-[300px] w-full rounded-md border-0"
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"
+                  ></iframe>
+                  <div v-else class="flex h-[300px] items-center justify-center rounded-md bg-slate-50 text-sm text-slate-500 dark:bg-slate-900 dark:text-slate-400">
+                    Geolokasi tidak tersedia.
+                  </div>
+                </div>
+                <div v-if="hasGeolocation" class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <InfoField label="Latitude" :value="data.latitude" />
                   <InfoField label="Longitude" :value="data.longitude" />
                 </div>
                 <BaseButton v-if="googleMapUrl" class="mt-4" size="sm" variant="outline-primary" @click="openFile(null, googleMapUrl)">Buka Peta</BaseButton>
               </div>
+            </div>
+
+            <div>
+              <h4 class="mb-2 text-sm font-semibold text-slate-700 dark:text-slate-200">Video</h4>
+              <div
+                v-if="data.vital_video_url || data.front_appearance_video_url || data.side_appearance_video_url"
+                class="grid grid-cols-1 gap-4 md:grid-cols-3"
+              >
+                <video v-if="data.vital_video_url" :src="data.vital_video_url" class="h-[260px] w-full rounded-lg border border-slate-200 object-cover dark:border-slate-800" controls />
+                <video v-if="!appChubb && data.front_appearance_video_url" :src="data.front_appearance_video_url" class="h-[260px] w-full rounded-lg border border-slate-200 object-cover dark:border-slate-800" controls />
+                <video v-if="!appChubb && data.side_appearance_video_url" :src="data.side_appearance_video_url" class="h-[260px] w-full rounded-lg border border-slate-200 object-cover dark:border-slate-800" controls />
+              </div>
+              <p v-else class="text-sm text-slate-500">Video tidak tersedia.</p>
             </div>
           </div>
         </Card>
