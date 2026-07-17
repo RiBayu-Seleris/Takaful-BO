@@ -13,49 +13,51 @@
  * Animasi buka/tutup submenu memakai JS hook (hitung tinggi asli elemen) supaya
  * gerakannya halus dan akurat — bukan trik max-height yang terasa kaku.
  */
-import { computed, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
-import { storeToRefs } from 'pinia'
-import { useAuthStore } from '@/stores/auth'
-import { useUiStore } from '@/stores/ui'
-import { buildMenu } from '@/config/menu'
-import Icon from '@/components/ui/Icon.vue'
-import { ChevronRight } from 'lucide-vue-next'
+import { computed, ref, watch } from "vue";
+import { useRoute } from "vue-router";
+import { storeToRefs } from "pinia";
+import { useAuthStore } from "@/stores/auth";
+import { useUiStore } from "@/stores/ui";
+import { buildMenu } from "@/config/menu";
+import Icon from "@/components/ui/Icon.vue";
+import { ChevronRight } from "lucide-vue-next";
+import Logo from "/assets/favico.png";
+import DarkLogo from "/assets/dark-favico.png";
 
-const route = useRoute()
-const auth = useAuthStore()
-const ui = useUiStore()
-const { isCollapsed } = storeToRefs(ui)
+const route = useRoute();
+const auth = useAuthStore();
+const ui = useUiStore();
+const { isCollapsed } = storeToRefs(ui);
 
 // Menu final yang sudah difilter role.
-const menu = computed(() => buildMenu(auth.menuFlags))
+const menu = computed(() => buildMenu(auth.menuFlags));
 
 // ACCORDION: hanya SATU grup yang boleh terbuka. Simpan id-nya (null = semua tertutup).
-const openGroup = ref(null)
+const openGroup = ref(null);
 
 function isGroupOpen(id) {
-  return openGroup.value === id
+  return openGroup.value === id;
 }
 
 function toggleGroup(id) {
   // Saat mode mini, klik grup justru melebarkan sidebar dulu supaya menu terbaca.
   if (isCollapsed.value) {
-    ui.collapseSidebar(false)
-    openGroup.value = id
-    return
+    ui.collapseSidebar(false);
+    openGroup.value = id;
+    return;
   }
   // Klik grup yang sama -> tutup; grup lain -> buka & tutup yang sebelumnya.
-  openGroup.value = openGroup.value === id ? null : id
+  openGroup.value = openGroup.value === id ? null : id;
 }
 
 // Apakah sebuah route sedang aktif?
 function isActive(routeName) {
-  return route.name === routeName
+  return route.name === routeName;
 }
 
 // Grup dianggap aktif bila salah satu anaknya aktif.
 function isGroupActive(group) {
-  return group.children?.some((child) => isActive(child.route))
+  return group.children?.some((child) => isActive(child.route));
 }
 
 // Buka otomatis grup yang memuat halaman aktif (mis. setelah refresh / navigasi).
@@ -64,102 +66,118 @@ watch(
   () => {
     for (const group of menu.value) {
       if (group.children && isGroupActive(group)) {
-        openGroup.value = group.id
-        return
+        openGroup.value = group.id;
+        return;
       }
     }
   },
   { immediate: true },
-)
+);
 
 // Tutup drawer saat klik menu di layar kecil.
 function onNavigate() {
-  if (window.innerWidth < 1024) ui.toggleSidebar(false)
+  if (window.innerWidth < 1024) ui.toggleSidebar(false);
 }
 
 /* ---------- Animasi tinggi submenu (WAAPI, very smooth) ---------- */
-const EASE = 'cubic-bezier(0.16, 1, 0.3, 1)' // easeOutExpo-like; lebih lembut di akhir.
+const EASE = "cubic-bezier(0.16, 1, 0.3, 1)"; // easeOutExpo-like; lebih lembut di akhir.
 
 function resetTransition(el) {
-  if (el._sidebarTimer) clearTimeout(el._sidebarTimer)
-  if (el._sidebarEnd) el.removeEventListener('transitionend', el._sidebarEnd)
+  if (el._sidebarTimer) clearTimeout(el._sidebarTimer);
+  if (el._sidebarEnd) el.removeEventListener("transitionend", el._sidebarEnd);
   if (el._sidebarAnimation) {
-    el._sidebarAnimation.onfinish = null
-    el._sidebarAnimation.oncancel = null
-    el._sidebarAnimation.cancel()
+    el._sidebarAnimation.onfinish = null;
+    el._sidebarAnimation.oncancel = null;
+    el._sidebarAnimation.cancel();
   }
-  el._sidebarTimer = null
-  el._sidebarEnd = null
-  el._sidebarAnimation = null
+  el._sidebarTimer = null;
+  el._sidebarEnd = null;
+  el._sidebarAnimation = null;
 }
 
 function onBeforeEnter(el) {
-  resetTransition(el)
-  el.style.overflow = 'hidden'
-  el.style.height = '0'
-  el.style.opacity = '0'
-  el.style.transform = 'translate3d(0, -10px, 0) scaleY(0.985)'
-  el.style.transformOrigin = 'top'
-  el.style.willChange = 'height, opacity, transform'
+  resetTransition(el);
+  el.style.overflow = "hidden";
+  el.style.height = "0";
+  el.style.opacity = "0";
+  el.style.transform = "translate3d(0, -10px, 0) scaleY(0.985)";
+  el.style.transformOrigin = "top";
+  el.style.willChange = "height, opacity, transform";
 }
 
 function onEnter(el, done) {
-  const targetHeight = el.scrollHeight
+  const targetHeight = el.scrollHeight;
   el._sidebarAnimation = el.animate(
     [
-      { height: '0px', opacity: 0, transform: 'translate3d(0, -10px, 0) scaleY(0.985)' },
-      { height: targetHeight + 'px', opacity: 1, transform: 'translate3d(0, 0, 0) scaleY(1)' },
+      {
+        height: "0px",
+        opacity: 0,
+        transform: "translate3d(0, -10px, 0) scaleY(0.985)",
+      },
+      {
+        height: targetHeight + "px",
+        opacity: 1,
+        transform: "translate3d(0, 0, 0) scaleY(1)",
+      },
     ],
-    { duration: 460, easing: EASE, fill: 'forwards' },
-  )
-  el._sidebarAnimation.onfinish = () => done()
-  el._sidebarAnimation.oncancel = () => done()
+    { duration: 460, easing: EASE, fill: "forwards" },
+  );
+  el._sidebarAnimation.onfinish = () => done();
+  el._sidebarAnimation.oncancel = () => done();
 }
 
 function onAfterEnter(el) {
-  resetTransition(el)
+  resetTransition(el);
   // Bersihkan style inline supaya tinggi kembali otomatis saat konten/viewport berubah.
-  el.style.height = ''
-  el.style.opacity = ''
-  el.style.transform = ''
-  el.style.transition = ''
-  el.style.overflow = ''
-  el.style.transformOrigin = ''
-  el.style.willChange = ''
+  el.style.height = "";
+  el.style.opacity = "";
+  el.style.transform = "";
+  el.style.transition = "";
+  el.style.overflow = "";
+  el.style.transformOrigin = "";
+  el.style.willChange = "";
 }
 
 function onBeforeLeave(el) {
-  resetTransition(el)
-  el.style.overflow = 'hidden'
-  el.style.height = el.scrollHeight + 'px'
-  el.style.opacity = '1'
-  el.style.transform = 'translate3d(0, 0, 0) scaleY(1)'
-  el.style.transformOrigin = 'top'
-  el.style.willChange = 'height, opacity, transform'
+  resetTransition(el);
+  el.style.overflow = "hidden";
+  el.style.height = el.scrollHeight + "px";
+  el.style.opacity = "1";
+  el.style.transform = "translate3d(0, 0, 0) scaleY(1)";
+  el.style.transformOrigin = "top";
+  el.style.willChange = "height, opacity, transform";
 }
 
 function onLeave(el, done) {
-  const startHeight = el.scrollHeight
+  const startHeight = el.scrollHeight;
   el._sidebarAnimation = el.animate(
     [
-      { height: startHeight + 'px', opacity: 1, transform: 'translate3d(0, 0, 0) scaleY(1)' },
-      { height: '0px', opacity: 0, transform: 'translate3d(0, -10px, 0) scaleY(0.985)' },
+      {
+        height: startHeight + "px",
+        opacity: 1,
+        transform: "translate3d(0, 0, 0) scaleY(1)",
+      },
+      {
+        height: "0px",
+        opacity: 0,
+        transform: "translate3d(0, -10px, 0) scaleY(0.985)",
+      },
     ],
-    { duration: 380, easing: EASE, fill: 'forwards' },
-  )
-  el._sidebarAnimation.onfinish = () => done()
-  el._sidebarAnimation.oncancel = () => done()
+    { duration: 380, easing: EASE, fill: "forwards" },
+  );
+  el._sidebarAnimation.onfinish = () => done();
+  el._sidebarAnimation.oncancel = () => done();
 }
 
 function onAfterLeave(el) {
-  resetTransition(el)
-  el.style.height = ''
-  el.style.opacity = ''
-  el.style.transform = ''
-  el.style.transition = ''
-  el.style.overflow = ''
-  el.style.transformOrigin = ''
-  el.style.willChange = ''
+  resetTransition(el);
+  el.style.height = "";
+  el.style.opacity = "";
+  el.style.transform = "";
+  el.style.transition = "";
+  el.style.overflow = "";
+  el.style.transformOrigin = "";
+  el.style.willChange = "";
 }
 </script>
 
@@ -173,16 +191,35 @@ function onAfterLeave(el) {
     ]"
   >
     <!-- Brand / Logo -->
-    <div class="flex h-14 shrink-0 items-center gap-2.5 border-b border-slate-200 px-4 dark:border-slate-800">
-      <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-600 text-sm font-bold text-white">
+    <div
+      class="flex h-16 shrink-0 items-center gap-2.5 border-b border-slate-200 px-4 dark:border-slate-800"
+    >
+      <div
+        class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-600 text-sm font-bold text-white"
+        :class="{ 'sidebar-text-collapsed hidden': !isCollapsed }"
+      >
         T
       </div>
-      <span
+      <img
+        :src="Logo"
+        alt="Logo"
+        srcset=""
+        class="h-full w-auto flex justify-start items-start block dark:hidden"
+        :class="{ hidden: isCollapsed }"
+      />
+      <img
+        :src="DarkLogo"
+        alt="Logo"
+        srcset=""
+        class="h-full w-auto flex justify-start items-start hidden dark:block"
+        :class="{ hidden: isCollapsed }"
+      />
+      <!-- <span
         class="sidebar-text truncate text-base font-bold text-slate-800 dark:text-slate-100"
         :class="{ 'sidebar-text-collapsed': isCollapsed }"
       >
         Takaful <span class="text-primary-500">BO</span>
-      </span>
+      </span> -->
     </div>
 
     <!-- Daftar menu -->
@@ -198,7 +235,11 @@ function onAfterLeave(el) {
           :title="isCollapsed ? group.label : ''"
         >
           <Icon :name="group.icon" class="h-[18px] w-[18px] shrink-0" />
-          <span class="sidebar-text truncate" :class="{ 'sidebar-text-collapsed': isCollapsed }">{{ group.label }}</span>
+          <span
+            class="sidebar-text truncate"
+            :class="{ 'sidebar-text-collapsed': isCollapsed }"
+            >{{ group.label }}</span
+          >
         </button>
 
         <!-- Menu tunggal -->
@@ -216,7 +257,11 @@ function onAfterLeave(el) {
           :title="isCollapsed ? group.label : ''"
         >
           <Icon :name="group.icon" class="h-[18px] w-[18px] shrink-0" />
-          <span class="sidebar-text truncate" :class="{ 'sidebar-text-collapsed': isCollapsed }">{{ group.label }}</span>
+          <span
+            class="sidebar-text truncate"
+            :class="{ 'sidebar-text-collapsed': isCollapsed }"
+            >{{ group.label }}</span
+          >
         </router-link>
 
         <!-- Grup dengan anak menu (accordion) -->
@@ -241,7 +286,10 @@ function onAfterLeave(el) {
             </span>
             <ChevronRight
               class="chevron h-4 w-4 shrink-0"
-              :class="{ 'rotate-90': isGroupOpen(group.id), 'chevron-collapsed': isCollapsed }"
+              :class="{
+                'rotate-90': isGroupOpen(group.id),
+                'chevron-collapsed': isCollapsed,
+              }"
             />
           </button>
 
@@ -255,7 +303,10 @@ function onAfterLeave(el) {
             @leave="onLeave"
             @after-leave="onAfterLeave"
           >
-            <ul v-if="!isCollapsed && isGroupOpen(group.id)" class="mt-1 space-y-1 overflow-hidden pl-4">
+            <ul
+              v-if="!isCollapsed && isGroupOpen(group.id)"
+              class="mt-1 space-y-1 overflow-hidden pl-4"
+            >
               <li
                 v-for="(child, index) in group.children"
                 :key="child.id"
@@ -274,7 +325,11 @@ function onAfterLeave(el) {
                 >
                   <span
                     class="dot h-1 w-1 shrink-0 rounded-full"
-                    :class="isActive(child.route) ? 'bg-primary-600' : 'bg-slate-300 dark:bg-slate-600'"
+                    :class="
+                      isActive(child.route)
+                        ? 'bg-primary-600'
+                        : 'bg-slate-300 dark:bg-slate-600'
+                    "
                   />
                   <span class="truncate">{{ child.label }}</span>
                 </router-link>
