@@ -21,8 +21,8 @@ import { useUiStore } from "@/stores/ui";
 import { buildMenu } from "@/config/menu";
 import Icon from "@/components/ui/Icon.vue";
 import { ChevronRight } from "lucide-vue-next";
-import Logo from "/assets/favico.png";
-import DarkLogo from "/assets/dark-favico.png";
+import Logo from "/assets/tss-logo.png";
+import DarkLogo from "/assets/tss-logo-dark.png";
 
 const route = useRoute();
 const auth = useAuthStore();
@@ -198,20 +198,20 @@ function onAfterLeave(el) {
         class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-600 text-sm font-bold text-white"
         :class="{ 'sidebar-text-collapsed hidden': !isCollapsed }"
       >
-        T
+        TSS
       </div>
       <img
         :src="Logo"
         alt="Logo"
         srcset=""
-        class="h-full w-auto flex justify-start items-start block dark:hidden"
+        class="h-auto w-auto flex justify-start items-start block dark:hidden p-3"
         :class="{ hidden: isCollapsed }"
       />
       <img
         :src="DarkLogo"
         alt="Logo"
         srcset=""
-        class="h-full w-auto flex justify-start items-start hidden dark:block"
+        class="h-auto w-auto flex justify-start items-start hidden dark:block p-3"
         :class="{ hidden: isCollapsed }"
       />
       <!-- <span

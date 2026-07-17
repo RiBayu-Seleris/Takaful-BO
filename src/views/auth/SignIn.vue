@@ -12,8 +12,8 @@ import { Eye, EyeOff, User, Lock } from "lucide-vue-next";
 import { useAuthStore } from "@/stores/auth";
 import { useMeta } from "@/composables/useMeta";
 import BaseButton from "@/components/ui/BaseButton.vue";
-import Logo from "/assets/favico.png";
-import DarkLogo from "/assets/dark-favico.png";
+import Logo from "/assets/tss-logo.png";
+import DarkLogo from "/assets/tss-logo-dark.png";
 
 useMeta({ title: "Masuk" });
 
